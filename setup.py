@@ -82,7 +82,6 @@ gemfileparser is released under two licenses: `GNU GPL version 3 (or above) Lice
 
 .. _GNU GPL version 3 (or above) License: http://www.gnu.org/licenses/gpl
 ''',
-    'install_requires': ['nose'],
     'packages': ['gemfileparser2'],
     'scripts': [],
     'name': 'gemfileparser2'
