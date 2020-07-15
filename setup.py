@@ -5,24 +5,24 @@ except ImportError:
     from distutils.core import setup
 
 config = {
-    'description': "Parse Ruby's Gemfiles",
-    'author': 'Balasankar C',
-    'url': 'https://gitlab.com/balasankarc/gemfileparser',
-    'download_url': 'https://gitlab.com/balasankarc/gemfileparser',
-    'author_email': 'balasankarc@autistici.org',
+    'description': "A library to parse Rubygem gemspec and Gemfile files and Cocoapods podspec and Podfile files using Python. Friendly fork of https://gitlab.com/balasankarc/gemfileparser",
+    'author': 'nexB',
+    'url': 'https://github.com/nexB/gemfileparser2',
+    'download_url': 'https://github.com/nexB/gemfileparser2',
+    'author_email': 'info@aboutcode.org',
     'version': '0.7.0',
     'license': 'GPL-3+ and MIT',
     'long_description': '''
 Installation
 ~~~~~~~~~~~~
 
-| If using pip, use the command ``sudo pip install gemfileparser``
+| If using pip, use the command ``sudo pip install gemfileparser2``
 | Else use the following commands
 
 ::
 
-    git clone https://github.com/balasankarc/gemfileparser.git
-    cd gemfileparser
+    git clone https://github.com/balasankarc/gemfileparser2.git
+    cd gemfileparser2
     python setup.py install
 
 Usage
@@ -30,7 +30,7 @@ Usage
 
 ::
 
-    from gemfileparser import GemfileParser
+    from gemfileparser2 import GemfileParser
     parser = GemfileParser(<path to Gemfile>, <name of the application (optional)>)
     dependency_dictionary = parser.parse()
 
@@ -61,7 +61,7 @@ Example
 
 ::
 
-    from gemfileparser import GemfileParser
+    from gemfileparser2 import GemfileParser
     n = GemfileParser('Gemfile', 'diaspora')
     deps = n.parse()
     for key in deps:
@@ -83,9 +83,9 @@ gemfileparser is released under two licenses: `GNU GPL version 3 (or above) Lice
 .. _GNU GPL version 3 (or above) License: http://www.gnu.org/licenses/gpl
 ''',
     'install_requires': ['nose'],
-    'packages': ['gemfileparser'],
+    'packages': ['gemfileparser2'],
     'scripts': [],
-    'name': 'gemfileparser'
+    'name': 'gemfileparser2'
 }
 
 setup(
