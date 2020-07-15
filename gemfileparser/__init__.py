@@ -14,7 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-'''Python library to parse Ruby's Gemfiles and gemspec files.'''
+"""
+Python library to parse Ruby's Gemfiles and gemspec files.
+"""
 
 import csv
 import io
@@ -25,65 +27,51 @@ import collections
 
 
 class GemfileParser(object):
-
-    '''Creates a GemfileParser object to perform operations. '''
+    """
+    Creates a GemfileParser object to perform operations.
+    """
 
     class Dependency(object):
-
-        ''' A class to hold information about a dependency gem.'''
+        """
+        A class to hold information about a dependency gem.
+        """
 
         def __init__(self):
-            self.name = None
+            self.name = ''
             self.requirement = []
-            self.autorequire = None
-            self.source = None
+            self.autorequire = ''
+            self.source = ''
             self.parent = []
-            self.group = None
-            self.platform = None
-            self.platforms = []
-            self.groups = []
-
-        def __str__(self):
-            attributes = self.__dict__
-            output = {}
-            for key, value in attributes.items():
-                if value is None or value == []:
-                    next
-                else:
-                    output[key] = value
-            return str(output)
+            self.group = ''
 
     gemfile_regexes = collections.OrderedDict()
-    gemfile_regexes['name'] = re.compile(r"gem ['\"](?P<name>.*?)['\"]")
     gemfile_regexes['source'] = re.compile(
-        r".*source(:|[ ]?=>)[ ]*['\"](?P<source>[a-zA-Z:\/\.-\\]+)['\"].*")
+        r'source:[ ]?(?P<source>[a-zA-Z:\/\.-]+)')
     gemfile_regexes['git'] = re.compile(
-        r".*git(:|[ ]?=>)[ ]*(?P<git>[a-zA-Z:\/\.-]+).*")
+        r'git:[ ]?(?P<git>[a-zA-Z:\/\.-]+)')
     gemfile_regexes['platform'] = re.compile(
-        r".*platform(:|[ ]?=>)[ ]*(?P<platform>[a-zA-Z:\/\.-]+).*")
-    gemfile_regexes['platforms'] = re.compile(
-        r".*platforms(:|[ ]?=>)[ ]*(?P<platforms>\[.*\])[,]?.*")
+        r'platform:[ ]?(?P<platform>[a-zA-Z:\/\.-]+)')
     gemfile_regexes['path'] = re.compile(
-        r".*path(:|[ ]?=>)[ ]*(?P<path>.+['\"\)]).*")
-    gemfile_regexes['github'] = re.compile(
-        r".*github(:|[ ]?=>)[ ]*[\'\"](?P<github>[a-zA-Z:\/\.-0-9]+)[\'\"].*")
+        r'path:[ ]?(?P<path>[a-zA-Z:\/\.-]+)')
     gemfile_regexes['branch'] = re.compile(
-        r".*branch(:|[ ]?=>)[ ]*(?P<branch>[a-zA-Z:\/\.-]+).*")
+        r'branch:[ ]?(?P<branch>[a-zA-Z:\/\.-]+)')
     gemfile_regexes['autorequire'] = re.compile(
-        r".*require(:|[ ]?=>)[ ]*(?P<autorequire>[a-zA-Z:\/\.-]+).*")
+        r'require:[ ]?(?P<autorequire>[a-zA-Z:\/\.-]+)')
     gemfile_regexes['group'] = re.compile(
-        r".*group(:|[ ]?=>)[ ]*(?P<group>[a-zA-Z:\/\.-]+).*")
-    gemfile_regexes['groups'] = re.compile(
-        r".*groups(:|[ ]?=>)[ ]*(?P<groups>\[.*\]),.*")
+        r'group:[ ]?(?P<group>[a-zA-Z:\/\.-]+)')
+    gemfile_regexes['name'] = re.compile(
+        r'(?P<name>[a-zA-Z]+[\.0-9a-zA-Z _-]*)')
     gemfile_regexes['requirement'] = re.compile(
-        r"gem[ ]['\"].*?['\"](?P<requirement>([>|<|=|~>|\d]+[ ]*[0-9\.\w]+[ ,]*)+).*")
+        r'(?P<requirement>([>|<|=|~>|\d]+[ ]*[0-9\.\w]+[ ,]*)+)')
     global_group = 'runtime'
     group_block_regex = re.compile(
-        r".*group[ ]?(:|[ ]?=>)[ ]*(?P<groupblock>.*?) do")
+        r'group[ ]?:[ ]?(?P<groupblock>.*?) do')
     add_dvtdep_regex = re.compile(
-        r".*add_development_dependency (?P<line>.*)")
+        r'.*add_development_dependency(?P<line>.*)')
     add_rundep_regex = re.compile(
-        r".*add_runtime_dependency (?P<line>.*)")
+        r'.*add_runtime_dependency(?P<line>.*)')
+    add_dep_regex = re.compile(
+        r'.*dependency(?P<line>.*)')
 
     def __init__(self, filepath, appname=''):
         self.filepath = filepath    # Required when calls to gemspec occurs
@@ -92,27 +80,33 @@ class GemfileParser(object):
         self.dependencies = {
             'development': [],
             'runtime': [],
+            'dependency': [],
             'test': [],
             'production': [],
             'metrics': []
         }
         self.contents = self.gemfile.readlines()
-        if filepath.endswith('gemspec'):
+        path = ('gemspec', 'podspec')
+        if filepath.endswith(path):
             self.gemspec = True
         else:
             self.gemspec = False
 
     @staticmethod
     def preprocess(line):
-        '''Removes the comment portion and excess spaces.'''
+        """
+        Return line after removing comment portion and excess spaces.
+        """
 
-        if "#" in line:
+        if '#' in line:
             line = line[:line.index('#')]
         line = line.strip()
         return line
 
     def parse_line(self, line):
-        '''Parses each line and creates dependency objects accordingly'''
+        """
+        Parses each line and creates dependency objects accordingly.
+        """
 
         try:
 
@@ -124,29 +118,43 @@ class GemfileParser(object):
             line = unicode(line)
         except NameError:
             pass
-        dep = self.Dependency()
-        dep.group = GemfileParser.global_group
-        if not self.appname:
-            dep.parent = []
-        else:
+        linefile = io.StringIO(line)    # csv requires a file object
+        for line in csv.reader(linefile, delimiter=','):
+            column_list = []
+            for column in line:
+                stripped_column = column.replace("'", '')
+                stripped_column = stripped_column.replace('"', '')
+                stripped_column = stripped_column.replace('%q<', '')
+                stripped_column = stripped_column.replace('(', '')
+                stripped_column = stripped_column.replace(')', '')
+                stripped_column = stripped_column.replace('[', '')
+                stripped_column = stripped_column.replace(']', '')
+                stripped_column = stripped_column.strip()
+                column_list.append(stripped_column)
+            dep = self.Dependency()
+            dep.group = GemfileParser.global_group
             dep.parent.append(self.appname)
-        # Check for a match in each regex and assign to
-        # corresponding variables
-        for criteria in GemfileParser.gemfile_regexes:
-            criteria_regex = GemfileParser.gemfile_regexes[criteria]
-            match = criteria_regex.match(line)
-            if match:
-                if criteria == 'requirement':
-                    dep.requirement.append(match.group(criteria))
-                else:
-                    setattr(dep, criteria, match.group(criteria))
-        if dep.group in self.dependencies:
-            self.dependencies[dep.group].append(dep)
-        else:
-            self.dependencies[dep.group] = [dep]
+            for column in column_list:
+                # Check for a match in each regex and assign to
+                # corresponding variables
+                for criteria in GemfileParser.gemfile_regexes:
+                    criteria_regex = GemfileParser.gemfile_regexes[criteria]
+                    match = criteria_regex.match(column)
+                    if match:
+                        if criteria == 'requirement':
+                            dep.requirement.append(match.group(criteria))
+                        else:
+                            setattr(dep, criteria, match.group(criteria))
+                        break
+            if dep.group in self.dependencies:
+                self.dependencies[dep.group].append(dep)
+            else:
+                self.dependencies[dep.group] = [dep]
 
     def parse_gemfile(self, path=''):
-        '''Parses a Gemfile and returns a dict of categorized dependencies.'''
+        """
+        Return dependencies after parsing gemfile.
+        """
 
         if path == '':
             contents = self.contents
@@ -165,22 +173,21 @@ class GemfileParser(object):
             elif line.startswith('gemspec'):
                 # Gemfile contains a call to gemspec
                 gemfiledir = os.path.dirname(self.filepath)
-                gemspec_list = glob.glob(os.path.join(gemfiledir, "*.gemspec"))
+                gemspec_list = glob.glob(os.path.join(gemfiledir, '*.gemspec'))
                 if len(gemspec_list) > 1:
-                    print("Multiple gemspec files found")
+                    print('Multiple gemspec files found')
                     continue
-                elif len(gemspec_list) < 1:
-                    print("No gemspec file found. Ignoring the gemspec call")
-                else:
-                    gemspec_file = gemspec_list[0]
-                    self.parse_gemspec(
-                        path=os.path.join(gemfiledir, gemspec_file))
+                gemspec_file = gemspec_list[0]
+                self.parse_gemspec(path=os.path.join(gemfiledir, gemspec_file))
             elif line.startswith('gem '):
+                line = line[3:]
                 self.parse_line(line)
         return self.dependencies
 
     def parse_gemspec(self, path=''):
-        '''Method to handle gemspec files.'''
+        """
+        Return dependencies after parsing gemspec/podspec files.
+        """
 
         if path == '':
             contents = self.contents
@@ -195,14 +202,20 @@ class GemfileParser(object):
                 match = GemfileParser.add_rundep_regex.match(line)
                 if match:
                     GemfileParser.global_group = 'runtime'
+                else:
+                    match = GemfileParser.add_dep_regex.match(line)
+                    if match:
+                        GemfileParser.global_group = 'dependency'
             if match:
                 line = match.group('line')
                 self.parse_line(line)
         return self.dependencies
 
     def parse(self):
-        '''Calls necessary function based on whether file is a gemspec file
-        or not and forwards the dicts returned by them.'''
+        """
+        Calls necessary function based on whether file is a gemspec/podspec file
+        or not and forwards the dicts returned by them.
+        """
         if self.gemspec:
             return self.parse_gemspec()
         else:
