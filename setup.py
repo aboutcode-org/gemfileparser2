@@ -13,6 +13,13 @@ config = {
     'version': '0.7.0',
     'license': 'GPL-3+ and MIT',
     'long_description': '''
+Introduction
+~~~~~~~~~~~~
+Parse Ruby Gemfile's using Python. Supports Gemfiles, .gemspec and Cocoapods(.podspec) files. Friendly fork of https://gitlab.com/balasankarc/gemfileparser.
+
+https://gitlab.com/balasankarc/gemfileparser can only detect particular type of dependency in `.gemspec` files like it can detect only `s.add_development_dependency "rspec", "~>1.3.1"` or `s.add_runtime_dependency "rspec", "~>1.3.1"` type of dependency. Dependency should be in these 2 format only. 
+https://github.com/nexB/gemfileparser2 can detect all format of dependencies. This fork supports Gemfiles, .gemspec files and Cocoapods(.podspec) files.
+
 Installation
 ~~~~~~~~~~~~
 

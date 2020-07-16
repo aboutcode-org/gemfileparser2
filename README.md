@@ -1,18 +1,21 @@
-# gemfileparser
-Parse Ruby Gemfile's using Python. Supports Gemfiles and .gemspec files.
+# gemfileparser2
+Parse Ruby Gemfile's using Python. Supports Gemfiles, .gemspec and Cocoapods(.podspec) files. Friendly fork of https://gitlab.com/balasankarc/gemfileparser.
+
+[gemfileparser](https://gitlab.com/balasankarc/gemfileparser) can only detect particular type of dependency in `.gemspec` files like it can detect only `s.add_development_dependency "rspec", "~>1.3.1"` or `s.add_runtime_dependency "rspec", "~>1.3.1"` type of dependency. Dependency should be in these 2 format only. 
+[gemfileparser2](https://github.com/nexB/gemfileparser2) can detect all format of dependencies. This fork supports Gemfiles, .gemspec files and Cocoapods(.podspec) files.
 
 ### Installation
-If using pip, use the command `sudo pip install gemfileparser`  
+If using pip, use the command `sudo pip install gemfileparser2`  
 Else use the following commands
 ```
-git clone https://github.com/balasankarc/gemfileparser.git
-cd gemfileparser
+git clone https://github.com/nexB/gemfileparser2.git
+cd gemfileparser2
 python setup.py install
 ```
 
 ### Usage
 ```
-from gemfileparser import GemfileParser
+from gemfileparser2 import GemfileParser
 parser = GemfileParser(<path to Gemfile>, <name of the application (optional)>)
 dependency_dictionary = parser.parse()
 ```
@@ -37,7 +40,7 @@ group - Group in which gem is a member of (default : runtime)
 
 #### Example
 ```
-from gemfileparser import GemfileParser
+from gemfileparser2 import GemfileParser
 n = GemfileParser('Gemfile', 'diaspora')
 deps = n.parse()
 for key in deps:
